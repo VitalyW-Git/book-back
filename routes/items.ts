@@ -1,13 +1,13 @@
 import express, { Router } from 'express';
-import itemsController from '../controllers/ItemsController';
+import ItemsController from '../controllers/ItemsController';
 
 const router: Router = express.Router();
 
-router.get('/', itemsController.getItems.bind(itemsController));
-router.get('/selected', itemsController.getSelectedItems.bind(itemsController));
-router.get('/state', itemsController.getState.bind(itemsController));
-router.post('/', itemsController.addItem.bind(itemsController));
-router.put('/selected', itemsController.updateSelection.bind(itemsController));
+router.get('/', ItemsController.getItems.bind(ItemsController));
+router.get('/selected', ItemsController.getSelectedItems.bind(ItemsController));
+router.get('/state', ItemsController.getState.bind(ItemsController));
+router.post('/', ItemsController.addItem.bind(ItemsController));
+router.put('/selected', ItemsController.updateSelection.bind(ItemsController));
 
 export default router;
 

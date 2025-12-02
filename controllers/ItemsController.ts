@@ -90,4 +90,3 @@ class ItemsController {
 }
 
 export default new ItemsController();
-

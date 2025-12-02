@@ -1,11 +1,10 @@
-import { Item, StateResponse } from '../types';
-
-const MAX_ID = 1000000;
+import { ItemInterface, StateResponseInterface } from '../types/interface';
+import { MAX_ID_CONSTANT } from "../types/constant";
 
 class ItemsRepository {
   private selectedItems: Set<number>;
   private selectedOrder: number[];
-  private allItems: Map<number, Item>;
+  private allItems: Map<number, ItemInterface>;
   private nextId: number;
 
   constructor() {
@@ -18,17 +17,13 @@ class ItemsRepository {
 
   private initializeItems(): void {
     console.log('Инициализация элементов...');
-    for (let i = 1; i <= MAX_ID; i++) {
+    for (let i = 1; i <= MAX_ID_CONSTANT; i++) {
       this.allItems.set(i, { id: i });
     }
     console.log('Инициализация завершена');
   }
 
-  getItem(id: number): Item | undefined {
-    return this.allItems.get(id);
-  }
-
-  getAllItems(): Item[] {
+  getAllItems(): ItemInterface[] {
     return Array.from(this.allItems.values());
   }
 
@@ -36,7 +31,7 @@ class ItemsRepository {
     return this.allItems.has(id);
   }
 
-  addItem(item: Item): boolean {
+  addItem(item: ItemInterface): boolean {
     if (!this.allItems.has(item.id)) {
       this.allItems.set(item.id, item);
       if (item.id >= this.nextId) {
@@ -67,11 +62,11 @@ class ItemsRepository {
     this.selectedOrder = order.filter(id => this.selectedItems.has(id));
   }
 
-  getSelectedItems(): Item[] {
+  getSelectedItems(): ItemInterface[] {
     return this.selectedOrder
       .filter(id => this.selectedItems.has(id))
       .map(id => this.allItems.get(id))
-      .filter((item): item is Item => item !== undefined);
+      .filter((item): item is ItemInterface => item !== undefined);
   }
 
   getSelectedItemsSet(): Set<number> {
@@ -82,7 +77,7 @@ class ItemsRepository {
     return this.selectedOrder;
   }
 
-  getState(): StateResponse {
+  getState(): StateResponseInterface {
     return {
       selectedItems: Array.from(this.selectedItems),
       selectedOrder: this.selectedOrder
@@ -90,7 +85,7 @@ class ItemsRepository {
   }
 
   getMaxId(): number {
-    return MAX_ID;
+    return MAX_ID_CONSTANT;
   }
 
   getNextId(): number {

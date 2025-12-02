@@ -1,19 +1,19 @@
 import itemsRepository from '../repositories/ItemsRepository';
 import {
-  ItemsResponse,
-  SelectedItemsResponse,
-  QueueAddItemResult,
-  QueueUpdateResult,
-  QueueItem,
-  QueueUpdate,
-  StateResponse
-} from '../types';
+  ItemsResponseInterface,
+  SelectedItemsResponseInterface,
+  QueueAddItemResultInterface,
+  QueueUpdateResultInterface,
+  QueueItemInterface,
+  QueueUpdateInterface,
+  StateResponseInterface
+} from '../types/interface';
 
 class ItemsService {
   private requestQueue: {
     add: Map<string, { id: number }>;
-    get: Map<string, QueueItem>;
-    update: Map<string, QueueUpdate>;
+    get: Map<string, QueueItemInterface>;
+    update: Map<string, QueueUpdateInterface>;
   };
   private addBatchTimer: NodeJS.Timeout | null;
   private getBatchTimer: NodeJS.Timeout | null;
@@ -78,7 +78,12 @@ class ItemsService {
     this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
   }
 
-  getItems(page: number = 1, limit: number = 20, filterId: number | null = null, excludeSelected: boolean = false): ItemsResponse {
+  getItems(
+      page: number = 1,
+      limit: number = 20,
+      filterId: number | null = null,
+      excludeSelected: boolean = false
+  ): ItemsResponseInterface {
     let items = itemsRepository.getAllItems();
 
     if (filterId) {
@@ -113,7 +118,7 @@ class ItemsService {
     };
   }
 
-  getSelectedItems(page: number = 1, limit: number = 20, filterId: number | null = null): SelectedItemsResponse {
+  getSelectedItems(page: number = 1, limit: number = 20, filterId: number | null = null): SelectedItemsResponseInterface {
     let items = itemsRepository.getSelectedItems();
 
     if (filterId) {
@@ -142,7 +147,7 @@ class ItemsService {
     };
   }
 
-  queueAddItem(id: number): QueueAddItemResult {
+  queueAddItem(id: number): QueueAddItemResultInterface {
     const queueKey = `add-${id}`;
     if (this.requestQueue.add.has(queueKey)) {
       return { queued: false, message: 'Item already in queue', id };
@@ -163,7 +168,10 @@ class ItemsService {
     return { queued: true, message: 'Item queued for addition', id };
   }
 
-  queueUpdateSelection(action: 'select' | 'deselect' | 'reorder', id?: number, order?: number[]): QueueUpdateResult {
+  queueUpdateSelection(
+      action: 'select' | 'deselect' | 'reorder',
+      id?: number, order?: number[]
+  ): QueueUpdateResultInterface {
     if (action === 'select' || action === 'deselect') {
       if (id === undefined) {
         return { success: false, error: 'ID is required for select/deselect' };
@@ -203,7 +211,7 @@ class ItemsService {
     return { success: false, error: 'Invalid action' };
   }
 
-  getState(): StateResponse {
+  getState(): StateResponseInterface {
     return itemsRepository.getState();
   }
 }
