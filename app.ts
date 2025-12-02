@@ -1,13 +1,11 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
+import express, { Express } from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import itemsRouter from './routes/items';
+import corsMiddleware from './middleware/cors';
+import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
-const itemsRouter = require('./routes/items');
-const corsMiddleware = require('./middleware/cors');
-const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
-
-const app = express();
+const app: Express = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -28,4 +26,5 @@ app.use('/api/items', itemsRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
+

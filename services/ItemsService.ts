@@ -1,6 +1,24 @@
-const itemsRepository = require('../repositories/ItemsRepository');
+import itemsRepository from '../repositories/ItemsRepository';
+import {
+  ItemsResponse,
+  SelectedItemsResponse,
+  QueueAddItemResult,
+  QueueUpdateResult,
+  QueueItem,
+  QueueUpdate,
+  StateResponse
+} from '../types';
 
 class ItemsService {
+  private requestQueue: {
+    add: Map<string, { id: number }>;
+    get: Map<string, QueueItem>;
+    update: Map<string, QueueUpdate>;
+  };
+  private addBatchTimer: NodeJS.Timeout | null;
+  private getBatchTimer: NodeJS.Timeout | null;
+  private updateBatchTimer: NodeJS.Timeout | null;
+
   constructor() {
     this.requestQueue = {
       add: new Map(),
@@ -12,7 +30,7 @@ class ItemsService {
     this.updateBatchTimer = null;
   }
 
-  processAddBatch() {
+  private processAddBatch(): void {
     if (this.requestQueue.add.size === 0) {
       this.addBatchTimer = null;
       return;
@@ -28,7 +46,7 @@ class ItemsService {
     this.addBatchTimer = setTimeout(() => this.processAddBatch(), 10000);
   }
 
-  processGetBatch() {
+  private processGetBatch(): void {
     if (this.requestQueue.get.size === 0) {
       this.getBatchTimer = null;
       return;
@@ -38,7 +56,7 @@ class ItemsService {
     this.getBatchTimer = setTimeout(() => this.processGetBatch(), 1000);
   }
 
-  processUpdateBatch() {
+  private processUpdateBatch(): void {
     if (this.requestQueue.update.size === 0) {
       this.updateBatchTimer = null;
       return;
@@ -48,11 +66,11 @@ class ItemsService {
     this.requestQueue.update.clear();
 
     updates.forEach(update => {
-      if (update.type === 'select') {
+      if (update.type === 'select' && update.id !== undefined) {
         itemsRepository.selectItem(update.id);
-      } else if (update.type === 'deselect') {
+      } else if (update.type === 'deselect' && update.id !== undefined) {
         itemsRepository.deselectItem(update.id);
-      } else if (update.type === 'reorder') {
+      } else if (update.type === 'reorder' && update.order !== undefined) {
         itemsRepository.reorderItems(update.order);
       }
     });
@@ -60,7 +78,7 @@ class ItemsService {
     this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
   }
 
-  getItems(page = 1, limit = 20, filterId = null, excludeSelected = false) {
+  getItems(page: number = 1, limit: number = 20, filterId: number | null = null, excludeSelected: boolean = false): ItemsResponse {
     let items = itemsRepository.getAllItems();
 
     if (filterId) {
@@ -95,7 +113,7 @@ class ItemsService {
     };
   }
 
-  getSelectedItems(page = 1, limit = 20, filterId = null) {
+  getSelectedItems(page: number = 1, limit: number = 20, filterId: number | null = null): SelectedItemsResponse {
     let items = itemsRepository.getSelectedItems();
 
     if (filterId) {
@@ -124,7 +142,7 @@ class ItemsService {
     };
   }
 
-  queueAddItem(id) {
+  queueAddItem(id: number): QueueAddItemResult {
     const queueKey = `add-${id}`;
     if (this.requestQueue.add.has(queueKey)) {
       return { queued: false, message: 'Item already in queue', id };
@@ -145,8 +163,12 @@ class ItemsService {
     return { queued: true, message: 'Item queued for addition', id };
   }
 
-  queueUpdateSelection(action, id, order) {
+  queueUpdateSelection(action: 'select' | 'deselect' | 'reorder', id?: number, order?: number[]): QueueUpdateResult {
     if (action === 'select' || action === 'deselect') {
+      if (id === undefined) {
+        return { success: false, error: 'ID is required for select/deselect' };
+      }
+
       const queueKey = `${action}-${id}`;
       if (!this.requestQueue.update.has(queueKey)) {
         this.requestQueue.update.set(queueKey, { type: action, id });
@@ -163,6 +185,10 @@ class ItemsService {
 
       return { success: true, message: `Item ${action}ed`, id };
     } else if (action === 'reorder') {
+      if (order === undefined) {
+        return { success: false, error: 'Order is required for reorder' };
+      }
+
       const queueKey = 'reorder';
       this.requestQueue.update.set(queueKey, { type: 'reorder', order });
       if (!this.updateBatchTimer) {
@@ -177,10 +203,10 @@ class ItemsService {
     return { success: false, error: 'Invalid action' };
   }
 
-  getState() {
+  getState(): StateResponse {
     return itemsRepository.getState();
   }
 }
 
-module.exports = new ItemsService();
+export default new ItemsService();
 

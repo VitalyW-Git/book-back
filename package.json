@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "build": "tsc",
+    "start": "node dist/bin/www.js",
+    "dev": "nodemon --exec ts-node bin/www.ts",
+    "dev:watch": "nodemon --watch . --ext ts --exec ts-node bin/www.ts"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -15,6 +17,13 @@
     "morgan": "~1.9.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "@types/cookie-parser": "^1.4.10",
+    "@types/debug": "^4.1.12",
+    "@types/express": "^5.0.6",
+    "@types/http-errors": "^2.0.5",
+    "@types/node": "^24.10.1",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

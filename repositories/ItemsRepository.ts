@@ -1,6 +1,13 @@
+import { Item, StateResponse } from '../types';
+
 const MAX_ID = 1000000;
 
 class ItemsRepository {
+  private selectedItems: Set<number>;
+  private selectedOrder: number[];
+  private allItems: Map<number, Item>;
+  private nextId: number;
+
   constructor() {
     this.selectedItems = new Set();
     this.selectedOrder = [];
@@ -9,7 +16,7 @@ class ItemsRepository {
     this.initializeItems();
   }
 
-  initializeItems() {
+  private initializeItems(): void {
     console.log('Инициализация элементов...');
     for (let i = 1; i <= MAX_ID; i++) {
       this.allItems.set(i, { id: i });
@@ -17,19 +24,19 @@ class ItemsRepository {
     console.log('Инициализация завершена');
   }
 
-  getItem(id) {
+  getItem(id: number): Item | undefined {
     return this.allItems.get(id);
   }
 
-  getAllItems() {
+  getAllItems(): Item[] {
     return Array.from(this.allItems.values());
   }
 
-  hasItem(id) {
+  hasItem(id: number): boolean {
     return this.allItems.has(id);
   }
 
-  addItem(item) {
+  addItem(item: Item): boolean {
     if (!this.allItems.has(item.id)) {
       this.allItems.set(item.id, item);
       if (item.id >= this.nextId) {
@@ -40,56 +47,56 @@ class ItemsRepository {
     return false;
   }
 
-  isSelected(id) {
+  isSelected(id: number): boolean {
     return this.selectedItems.has(id);
   }
 
-  selectItem(id) {
+  selectItem(id: number): void {
     this.selectedItems.add(id);
     if (!this.selectedOrder.includes(id)) {
       this.selectedOrder.push(id);
     }
   }
 
-  deselectItem(id) {
+  deselectItem(id: number): void {
     this.selectedItems.delete(id);
     this.selectedOrder = this.selectedOrder.filter(itemId => itemId !== id);
   }
 
-  reorderItems(order) {
+  reorderItems(order: number[]): void {
     this.selectedOrder = order.filter(id => this.selectedItems.has(id));
   }
 
-  getSelectedItems() {
+  getSelectedItems(): Item[] {
     return this.selectedOrder
       .filter(id => this.selectedItems.has(id))
       .map(id => this.allItems.get(id))
-      .filter(item => item !== undefined);
+      .filter((item): item is Item => item !== undefined);
   }
 
-  getSelectedItemsSet() {
+  getSelectedItemsSet(): Set<number> {
     return this.selectedItems;
   }
 
-  getSelectedOrder() {
+  getSelectedOrder(): number[] {
     return this.selectedOrder;
   }
 
-  getState() {
+  getState(): StateResponse {
     return {
       selectedItems: Array.from(this.selectedItems),
       selectedOrder: this.selectedOrder
     };
   }
 
-  getMaxId() {
+  getMaxId(): number {
     return MAX_ID;
   }
 
-  getNextId() {
+  getNextId(): number {
     return this.nextId;
   }
 }
 
-module.exports = new ItemsRepository();
+export default new ItemsRepository();
 
