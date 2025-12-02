@@ -78,11 +78,30 @@ class ItemsService {
     this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
   }
 
+  private paginateItems<T>(
+    items: T[],
+    page: number,
+    limit: number): { paginatedItems: T[], start: number, end: number }
+  {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedItems = items.slice(start, end);
+    return { paginatedItems, start, end };
+  }
+
+  private addToGetQueue(queueKey: string, queueData: QueueItemInterface): void {
+    if (!this.requestQueue.get.has(queueKey)) {
+      this.requestQueue.get.set(queueKey, queueData);
+      if (!this.getBatchTimer) {
+        this.getBatchTimer = setTimeout(() => this.processGetBatch(), 1000);
+      }
+    }
+  }
+
   getItems(
-      page: number = 1,
-      limit: number = 20,
-      filterId: number | null = null,
-      excludeSelected: boolean = false
+      page: number,
+      limit: number,
+      filterId: number | null,
   ): ItemsResponseInterface {
     let items = itemsRepository.getAllItems();
 
@@ -90,24 +109,15 @@ class ItemsService {
       items = items.filter(item => item.id.toString().includes(filterId.toString()));
     }
 
-    if (excludeSelected) {
-      const selectedSet = itemsRepository.getSelectedItemsSet();
-      items = items.filter(item => !selectedSet.has(item.id));
-    }
+    const selectedItems = itemsRepository.getSelectedItems();
+    items = items.filter(item => !selectedItems.has(item.id));
 
     items.sort((a, b) => a.id - b.id);
 
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const paginatedItems = items.slice(start, end);
+    const { paginatedItems, end } = this.paginateItems(items, page, limit);
 
-    const queueKey = `${page}-${limit}-${filterId}-${excludeSelected}`;
-    if (!this.requestQueue.get.has(queueKey)) {
-      this.requestQueue.get.set(queueKey, { page, limit, filterId, excludeSelected });
-      if (!this.getBatchTimer) {
-        this.getBatchTimer = setTimeout(() => this.processGetBatch(), 1000);
-      }
-    }
+    const queueKey = `item-${page}-${limit}-${filterId}`;
+    this.addToGetQueue(queueKey, { page, limit, filterId });
 
     return {
       items: paginatedItems,
@@ -118,24 +128,21 @@ class ItemsService {
     };
   }
 
-  getSelectedItems(page: number = 1, limit: number = 20, filterId: number | null = null): SelectedItemsResponseInterface {
-    let items = itemsRepository.getSelectedItems();
+  getSelectedItems(
+      page: number,
+      limit: number,
+      filterId: number | null
+  ): SelectedItemsResponseInterface {
+    let items = itemsRepository.getSelectedAllItems();
 
     if (filterId) {
       items = items.filter(item => item.id.toString().includes(filterId.toString()));
     }
 
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const paginatedItems = items.slice(start, end);
+    const { paginatedItems, end } = this.paginateItems(items, page, limit);
 
     const queueKey = `selected-${page}-${limit}-${filterId}`;
-    if (!this.requestQueue.get.has(queueKey)) {
-      this.requestQueue.get.set(queueKey, { page, limit, filterId, selected: true });
-      if (!this.getBatchTimer) {
-        this.getBatchTimer = setTimeout(() => this.processGetBatch(), 1000);
-      }
-    }
+    this.addToGetQueue(queueKey, { page, limit, filterId, selected: true });
 
     return {
       items: paginatedItems,

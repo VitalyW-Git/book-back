@@ -2,16 +2,12 @@ import { ItemInterface, StateResponseInterface } from '../types/interface';
 import { MAX_ID_CONSTANT } from "../types/constant";
 
 class ItemsRepository {
-  private selectedItems: Set<number>;
-  private selectedOrder: number[];
-  private allItems: Map<number, ItemInterface>;
-  private nextId: number;
+  private selectedItems: Set<number> = new Set();
+  private selectedOrder: number[] = [];
+  private allItems: Map<number, ItemInterface> = new Map();
+  private nextId: number = 1000001;
 
   constructor() {
-    this.selectedItems = new Set();
-    this.selectedOrder = [];
-    this.allItems = new Map();
-    this.nextId = 1000001;
     this.initializeItems();
   }
 
@@ -25,6 +21,13 @@ class ItemsRepository {
 
   getAllItems(): ItemInterface[] {
     return Array.from(this.allItems.values());
+  }
+
+  getSelectedAllItems(): ItemInterface[] {
+      return this.selectedOrder
+          .filter(id => this.selectedItems.has(id))
+          .map(id => this.allItems.get(id))
+          .filter((item): item is ItemInterface => item !== undefined);
   }
 
   hasItem(id: number): boolean {
@@ -62,14 +65,7 @@ class ItemsRepository {
     this.selectedOrder = order.filter(id => this.selectedItems.has(id));
   }
 
-  getSelectedItems(): ItemInterface[] {
-    return this.selectedOrder
-      .filter(id => this.selectedItems.has(id))
-      .map(id => this.allItems.get(id))
-      .filter((item): item is ItemInterface => item !== undefined);
-  }
-
-  getSelectedItemsSet(): Set<number> {
+  getSelectedItems(): Set<number> {
     return this.selectedItems;
   }
 

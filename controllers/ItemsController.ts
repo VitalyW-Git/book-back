@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import itemsService from '../services/ItemsService';
+import {ItemsResponseInterface} from "../types/interface";
 
 class ItemsController {
   async getItems(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -7,9 +8,8 @@ class ItemsController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const filterId = req.query.filterId ? parseInt(req.query.filterId as string) : null;
-      const excludeSelected = req.query.excludeSelected === 'true';
 
-      const result = itemsService.getItems(page, limit, filterId, excludeSelected);
+      const result: ItemsResponseInterface = itemsService.getItems(page, limit, filterId);
       res.json(result);
     } catch (error) {
       next(error);
