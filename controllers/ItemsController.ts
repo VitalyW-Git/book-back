@@ -35,7 +35,7 @@ class ItemsController {
       const { id } = req.body;
 
       if (!id) {
-        res.status(400).json({ error: 'ID должен быть числом' });
+        res.status(400).json({ error: 'ID обязателен для заполнения' });
         return;
       }
 
