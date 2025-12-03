@@ -1,1 +1,1 @@
-export const MAX_ID_CONSTANT = 1000000;
+export const MAX_ID_CONSTANT = 55;

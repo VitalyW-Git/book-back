@@ -81,12 +81,12 @@ class ItemsService {
   private paginateItems<T>(
     items: T[],
     page: number,
-    limit: number): { paginatedItems: T[], start: number, end: number }
+    limit: number): { paginatedItems: T[], start: number }
   {
     const start = (page - 1) * limit;
     const end = start + limit;
     const paginatedItems = items.slice(start, end);
-    return { paginatedItems, start, end };
+    return { paginatedItems, start};
   }
 
   private addToGetQueue(queueKey: string, queueData: QueueItemInterface): void {
@@ -114,7 +114,7 @@ class ItemsService {
 
     items.sort((a, b) => a.id - b.id);
 
-    const { paginatedItems, end } = this.paginateItems(items, page, limit);
+    const { paginatedItems } = this.paginateItems(items, page, limit);
 
     const queueKey = `item-${page}-${limit}-${filterId}`;
     this.addToGetQueue(queueKey, { page, limit, filterId });
@@ -124,7 +124,6 @@ class ItemsService {
       total: items.length,
       page,
       limit,
-      hasMore: end < items.length
     };
   }
 
@@ -139,7 +138,7 @@ class ItemsService {
       items = items.filter(item => item.id.toString().includes(filterId.toString()));
     }
 
-    const { paginatedItems, end } = this.paginateItems(items, page, limit);
+    const { paginatedItems } = this.paginateItems(items, page, limit);
 
     const queueKey = `selected-${page}-${limit}-${filterId}`;
     this.addToGetQueue(queueKey, { page, limit, filterId, selected: true });
@@ -149,7 +148,6 @@ class ItemsService {
       total: items.length,
       page,
       limit,
-      hasMore: end < items.length,
       order: itemsRepository.getSelectedOrder()
     };
   }

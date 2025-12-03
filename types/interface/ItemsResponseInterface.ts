@@ -5,5 +5,4 @@ export interface ItemsResponseInterface {
     total: number;
     page: number;
     limit: number;
-    hasMore: boolean;
 }
