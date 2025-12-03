@@ -155,12 +155,12 @@ class ItemsService {
   queueAddItem(id: number): QueueAddItemResultInterface {
     const queueKey = `add-${id}`;
     if (this.requestQueue.add.has(queueKey)) {
-      return { queued: false, message: 'Item already in queue', id };
+      return { queued: false, message: '"Элемент" уже в очереди', id };
     }
 
     const maxId = itemsRepository.getMaxId();
     if (id <= maxId || itemsRepository.hasItem(id)) {
-      return { queued: false, error: 'Item with this ID already exists' };
+      return { queued: false, error: 'Элемент с таким идентификатором уже существует' };
     }
 
     const newItem = { id };
@@ -170,7 +170,7 @@ class ItemsService {
       this.addBatchTimer = setTimeout(() => this.processAddBatch(), 10000);
     }
 
-    return { queued: true, message: 'Item queued for addition', id };
+    return { queued: true, message: 'Элемент поставлен в очередь на добавление', id };
   }
 
   queueUpdateSelection(
@@ -179,7 +179,7 @@ class ItemsService {
   ): QueueUpdateResultInterface {
     if (action === 'select' || action === 'deselect') {
       if (id === undefined) {
-        return { success: false, error: 'ID is required for select/deselect' };
+        return { success: false, error: 'Для выбора/отмены выбора требуется идентификатор' };
       }
 
       const queueKey = `${action}-${id}`;
@@ -199,7 +199,7 @@ class ItemsService {
       return { success: true, message: `Item ${action}ed`, id };
     } else if (action === 'reorder') {
       if (order === undefined) {
-        return { success: false, error: 'Order is required for reorder' };
+        return { success: false, error: 'Требуется указать порядок' };
       }
 
       const queueKey = 'reorder';
@@ -210,10 +210,10 @@ class ItemsService {
 
       itemsRepository.reorderItems(order);
 
-      return { success: true, message: 'Order updated', order: itemsRepository.getSelectedOrder() };
+      return { success: true, message: 'Сортировка обновлена', order: itemsRepository.getSelectedOrder() };
     }
 
-    return { success: false, error: 'Invalid action' };
+    return { success: false, error: 'Неверные параметры' };
   }
 
   getState(): StateResponseInterface {
