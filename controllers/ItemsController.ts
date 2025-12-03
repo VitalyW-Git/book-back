@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import itemsService from '../services/ItemsService';
 import {ItemsResponseInterface} from "../types/interface";
+import {ActionEnum} from "../types/enum/ActionEnum";
 
 class ItemsController {
   async getItems(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -33,8 +34,8 @@ class ItemsController {
     try {
       const { id } = req.body;
 
-      if (!id || typeof id !== 'number') {
-        res.status(400).json({ error: 'ID is required and must be a number' });
+      if (!id) {
+        res.status(400).json({ error: 'ID должен быть числом' });
         return;
       }
 
@@ -55,34 +56,25 @@ class ItemsController {
     try {
       const { action, id, order } = req.body;
 
-      if (action === 'select' || action === 'deselect') {
-        if (!id || typeof id !== 'number') {
-          res.status(400).json({ error: 'ID is required for select/deselect' });
+      if (action === ActionEnum.SELECT || action === ActionEnum.DESELECT) {
+        if (!id) {
+          res.status(400).json({ error: 'ID обязателен для select/deselect' });
           return;
         }
 
         const result = itemsService.queueUpdateSelection(action, id);
         res.json({ message: result.message, id });
-      } else if (action === 'reorder') {
+      } else if (action === ActionEnum.REORDER) {
         if (!Array.isArray(order)) {
-          res.status(400).json({ error: 'Order must be an array' });
+          res.status(400).json({ error: 'Сортировка должна быть массивом' });
           return;
         }
 
-        const result = itemsService.queueUpdateSelection(action, undefined, order);
+        const result = itemsService.queueUpdateSelection(ActionEnum.REORDER, undefined, order);
         res.json({ message: result.message, order: result.order });
       } else {
-        res.status(400).json({ error: 'Invalid action' });
+        res.status(400).json({ error: 'Не верный параметр' });
       }
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getState(_req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const state = itemsService.getState();
-      res.json(state);
     } catch (error) {
       next(error);
     }

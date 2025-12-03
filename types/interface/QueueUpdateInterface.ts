@@ -1,5 +1,7 @@
+import {ActionEnum} from "../enum/ActionEnum";
+
 export interface QueueUpdateInterface {
-    type: 'select' | 'deselect' | 'reorder';
+    type: ActionEnum;
     id?: number;
     order?: number[];
 }

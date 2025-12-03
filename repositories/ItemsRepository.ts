@@ -1,4 +1,4 @@
-import { ItemInterface, StateResponseInterface } from '../types/interface';
+import { ItemInterface } from '../types/interface';
 import { MAX_ID_CONSTANT } from "../types/constant";
 
 class ItemsRepository {
@@ -71,13 +71,6 @@ class ItemsRepository {
 
   getSelectedOrder(): number[] {
     return this.selectedOrder;
-  }
-
-  getState(): StateResponseInterface {
-    return {
-      selectedItems: Array.from(this.selectedItems),
-      selectedOrder: this.selectedOrder
-    };
   }
 
   getMaxId(): number {

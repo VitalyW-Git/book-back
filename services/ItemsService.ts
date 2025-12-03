@@ -5,30 +5,21 @@ import {
   QueueAddItemResultInterface,
   QueueUpdateResultInterface,
   QueueItemInterface,
-  QueueUpdateInterface,
-  StateResponseInterface
+  RequestQueueInterface
 } from '../types/interface';
+import {ActionEnum} from "../types/enum/ActionEnum";
 
 class ItemsService {
-  private requestQueue: {
-    add: Map<string, { id: number }>;
-    get: Map<string, QueueItemInterface>;
-    update: Map<string, QueueUpdateInterface>;
+  private requestQueue: RequestQueueInterface = {
+    add: new Map(),
+    get: new Map(),
+    update: new Map(),
   };
-  private addBatchTimer: NodeJS.Timeout | null;
-  private getBatchTimer: NodeJS.Timeout | null;
-  private updateBatchTimer: NodeJS.Timeout | null;
+  private addBatchTimer: NodeJS.Timeout | null = null;
+  private getBatchTimer: NodeJS.Timeout | null = null;
+  private updateBatchTimer: NodeJS.Timeout | null = null;
 
-  constructor() {
-    this.requestQueue = {
-      add: new Map(),
-      get: new Map(),
-      update: new Map(),
-    };
-    this.addBatchTimer = null;
-    this.getBatchTimer = null;
-    this.updateBatchTimer = null;
-  }
+  constructor() {}
 
   private processAddBatch(): void {
     if (this.requestQueue.add.size === 0) {
@@ -66,11 +57,11 @@ class ItemsService {
     this.requestQueue.update.clear();
 
     updates.forEach(update => {
-      if (update.type === 'select' && update.id !== undefined) {
+      if (update.type === ActionEnum.SELECT && update.id !== undefined) {
         itemsRepository.selectItem(update.id);
-      } else if (update.type === 'deselect' && update.id !== undefined) {
+      } else if (update.type === ActionEnum.DESELECT && update.id !== undefined) {
         itemsRepository.deselectItem(update.id);
-      } else if (update.type === 'reorder' && update.order !== undefined) {
+      } else if (update.type === ActionEnum.REORDER && update.order !== undefined) {
         itemsRepository.reorderItems(update.order);
       }
     });
@@ -110,9 +101,8 @@ class ItemsService {
     }
 
     const selectedItems = itemsRepository.getSelectedItems();
-    items = items.filter(item => !selectedItems.has(item.id));
-
-    items.sort((a, b) => a.id - b.id);
+    items = items.filter(item => !selectedItems.has(item.id))
+      .sort((a, b) => a.id - b.id);
 
     const { paginatedItems } = this.paginateItems(items, page, limit);
 
@@ -160,7 +150,7 @@ class ItemsService {
 
     const maxId = itemsRepository.getMaxId();
     if (id <= maxId || itemsRepository.hasItem(id)) {
-      return { queued: false, error: 'Элемент с таким идентификатором уже существует' };
+      return { queued: false, error: `Элемент с ID ${id}  уже существует` };
     }
 
     const newItem = { id };
@@ -174,12 +164,13 @@ class ItemsService {
   }
 
   queueUpdateSelection(
-      action: 'select' | 'deselect' | 'reorder',
-      id?: number, order?: number[]
+      action: ActionEnum,
+      id?: number,
+      order?: number[]
   ): QueueUpdateResultInterface {
-    if (action === 'select' || action === 'deselect') {
-      if (id === undefined) {
-        return { success: false, error: 'Для выбора/отмены выбора требуется идентификатор' };
+    if (action === ActionEnum.SELECT || action === ActionEnum.DESELECT) {
+      if (!id) {
+        return { success: false, error: 'Для выбора/отмены требуется идентификатор' };
       }
 
       const queueKey = `${action}-${id}`;
@@ -190,20 +181,18 @@ class ItemsService {
         }
       }
 
-      if (action === 'select') {
+      if (action === ActionEnum.SELECT) {
         itemsRepository.selectItem(id);
       } else {
         itemsRepository.deselectItem(id);
       }
 
       return { success: true, message: `Item ${action}ed`, id };
-    } else if (action === 'reorder') {
-      if (order === undefined) {
+    } else if (action === ActionEnum.REORDER) {
+      if (!order?.length) {
         return { success: false, error: 'Требуется указать порядок' };
       }
-
-      const queueKey = 'reorder';
-      this.requestQueue.update.set(queueKey, { type: 'reorder', order });
+      this.requestQueue.update.set(ActionEnum.REORDER, { type: ActionEnum.REORDER, order });
       if (!this.updateBatchTimer) {
         this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
       }
@@ -214,10 +203,6 @@ class ItemsService {
     }
 
     return { success: false, error: 'Неверные параметры' };
-  }
-
-  getState(): StateResponseInterface {
-    return itemsRepository.getState();
   }
 }
 
