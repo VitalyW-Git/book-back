@@ -1,4 +1,4 @@
-import { ItemInterface } from '../types/interface';
+import { ItemInterface } from "../types/interface";
 import { MAX_ID_CONSTANT } from "../types/constant";
 
 class ItemsRepository {
@@ -12,29 +12,29 @@ class ItemsRepository {
   }
 
   private initializeItems(): void {
-    console.log('Инициализация элементов...');
+    console.log("Инициализация элементов...");
     for (let i = 1; i <= MAX_ID_CONSTANT; i++) {
       this.allItems.set(i, { id: i });
     }
-    console.log('Инициализация завершена');
+    console.log("Инициализация завершена");
   }
 
-  getAllItems(): ItemInterface[] {
+  public getAllItems(): ItemInterface[] {
     return Array.from(this.allItems.values());
   }
 
-  getSelectedAllItems(): ItemInterface[] {
-      return this.selectedOrder
-          .filter(id => this.selectedItems.has(id))
-          .map(id => this.allItems.get(id))
-          .filter((item): item is ItemInterface => item !== undefined);
+  public getSelectedAllItems(): ItemInterface[] {
+    return this.selectedOrder
+      .filter((id) => this.selectedItems.has(id))
+      .map((id) => this.allItems.get(id))
+      .filter((item): item is ItemInterface => item !== undefined);
   }
 
-  hasItem(id: number): boolean {
+  public hasItem(id: number): boolean {
     return this.allItems.has(id);
   }
 
-  addItem(item: ItemInterface): boolean {
+  public addItem(item: ItemInterface): boolean {
     if (!this.allItems.has(item.id)) {
       this.allItems.set(item.id, item);
       if (item.id >= this.nextId) {
@@ -45,42 +45,33 @@ class ItemsRepository {
     return false;
   }
 
-  isSelected(id: number): boolean {
-    return this.selectedItems.has(id);
-  }
-
-  selectItem(id: number): void {
+  public selectItem(id: number): void {
     this.selectedItems.add(id);
     if (!this.selectedOrder.includes(id)) {
       this.selectedOrder.push(id);
     }
   }
 
-  deselectItem(id: number): void {
+  public deselectItem(id: number): void {
     this.selectedItems.delete(id);
-    this.selectedOrder = this.selectedOrder.filter(itemId => itemId !== id);
+    this.selectedOrder = this.selectedOrder.filter((itemId) => itemId !== id);
   }
 
-  reorderItems(order: number[]): void {
-    this.selectedOrder = order.filter(id => this.selectedItems.has(id));
+  public reorderItems(order: number[]): void {
+    this.selectedOrder = order.filter((id) => this.selectedItems.has(id));
   }
 
-  getSelectedItems(): Set<number> {
+  public getSelectedItems(): Set<number> {
     return this.selectedItems;
   }
 
-  getSelectedOrder(): number[] {
+  public getSelectedOrder(): number[] {
     return this.selectedOrder;
   }
 
-  getMaxId(): number {
+  public getMaxId(): number {
     return MAX_ID_CONSTANT;
-  }
-
-  getNextId(): number {
-    return this.nextId;
   }
 }
 
 export default new ItemsRepository();
-

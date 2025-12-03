@@ -1,4 +1,4 @@
 export interface StateResponseInterface {
-    selectedItems: number[];
-    selectedOrder: number[];
+  selectedItems: number[];
+  selectedOrder: number[];
 }

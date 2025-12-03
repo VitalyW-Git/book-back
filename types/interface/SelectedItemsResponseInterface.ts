@@ -1,5 +1,5 @@
-import {ItemsResponseInterface} from "./ItemsResponseInterface";
+import { ItemsResponseInterface } from "./ItemsResponseInterface";
 
 export interface SelectedItemsResponseInterface extends ItemsResponseInterface {
-    order: number[];
+  order: number[];
 }

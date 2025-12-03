@@ -1,27 +1,43 @@
-import { Request, Response, NextFunction } from 'express';
-import itemsService from '../services/ItemsService';
-import {ItemsResponseInterface} from "../types/interface";
-import {ActionEnum} from "../types/enum/ActionEnum";
+import { Request, Response, NextFunction } from "express";
+import itemsService from "../services/ItemsService";
+import { ItemsResponseInterface } from "../types/interface";
+import { ActionEnum } from "../types/enum/ActionEnum";
 
 class ItemsController {
-  async getItems(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getItems(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
-      const filterId = req.query.filterId ? parseInt(req.query.filterId as string) : null;
+      const filterId = req.query.filterId
+        ? parseInt(req.query.filterId as string)
+        : null;
 
-      const result: ItemsResponseInterface = itemsService.getItems(page, limit, filterId);
+      const result: ItemsResponseInterface = itemsService.getItems(
+        page,
+        limit,
+        filterId
+      );
       res.json(result);
     } catch (error) {
       next(error);
     }
   }
 
-  async getSelectedItems(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getSelectedItems(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
-      const filterId = req.query.filterId ? parseInt(req.query.filterId as string) : null;
+      const filterId = req.query.filterId
+        ? parseInt(req.query.filterId as string)
+        : null;
 
       const result = itemsService.getSelectedItems(page, limit, filterId);
       res.json(result);
@@ -30,12 +46,16 @@ class ItemsController {
     }
   }
 
-  async addItem(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async addItem(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const { id } = req.body;
 
       if (!id) {
-        res.status(400).json({ error: 'ID обязателен для заполнения' });
+        res.status(400).json({ error: "ID обязателен для заполнения" });
         return;
       }
 
@@ -52,13 +72,17 @@ class ItemsController {
     }
   }
 
-  async updateSelection(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateSelection(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const { action, id, order } = req.body;
 
       if (action === ActionEnum.SELECT || action === ActionEnum.DESELECT) {
         if (!id) {
-          res.status(400).json({ error: 'ID обязателен для select/deselect' });
+          res.status(400).json({ error: "ID обязателен для select/deselect" });
           return;
         }
 
@@ -66,14 +90,18 @@ class ItemsController {
         res.json({ message: result.message, id });
       } else if (action === ActionEnum.REORDER) {
         if (!Array.isArray(order)) {
-          res.status(400).json({ error: 'Сортировка должна быть массивом' });
+          res.status(400).json({ error: "Сортировка должна быть массивом" });
           return;
         }
 
-        const result = itemsService.queueUpdateSelection(ActionEnum.REORDER, undefined, order);
+        const result = itemsService.queueUpdateSelection(
+          ActionEnum.REORDER,
+          undefined,
+          order
+        );
         res.json({ message: result.message, order: result.order });
       } else {
-        res.status(400).json({ error: 'Не верный параметр' });
+        res.status(400).json({ error: "Не верный параметр" });
       }
     } catch (error) {
       next(error);

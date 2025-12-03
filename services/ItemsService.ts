@@ -1,13 +1,13 @@
-import itemsRepository from '../repositories/ItemsRepository';
+import itemsRepository from "../repositories/ItemsRepository";
 import {
   ItemsResponseInterface,
   SelectedItemsResponseInterface,
   QueueAddItemResultInterface,
   QueueUpdateResultInterface,
   QueueItemInterface,
-  RequestQueueInterface
-} from '../types/interface';
-import {ActionEnum} from "../types/enum/ActionEnum";
+  RequestQueueInterface,
+} from "../types/interface";
+import { ActionEnum } from "../types/enum/ActionEnum";
 
 class ItemsService {
   private requestQueue: RequestQueueInterface = {
@@ -30,7 +30,7 @@ class ItemsService {
     const itemsToAdd = Array.from(this.requestQueue.add.values());
     this.requestQueue.add.clear();
 
-    itemsToAdd.forEach(item => {
+    itemsToAdd.forEach((item) => {
       itemsRepository.addItem(item);
     });
 
@@ -56,12 +56,18 @@ class ItemsService {
     const updates = Array.from(this.requestQueue.update.values());
     this.requestQueue.update.clear();
 
-    updates.forEach(update => {
+    updates.forEach((update) => {
       if (update.type === ActionEnum.SELECT && update.id !== undefined) {
         itemsRepository.selectItem(update.id);
-      } else if (update.type === ActionEnum.DESELECT && update.id !== undefined) {
+      } else if (
+        update.type === ActionEnum.DESELECT &&
+        update.id !== undefined
+      ) {
         itemsRepository.deselectItem(update.id);
-      } else if (update.type === ActionEnum.REORDER && update.order !== undefined) {
+      } else if (
+        update.type === ActionEnum.REORDER &&
+        update.order !== undefined
+      ) {
         itemsRepository.reorderItems(update.order);
       }
     });
@@ -72,12 +78,12 @@ class ItemsService {
   private paginateItems<T>(
     items: T[],
     page: number,
-    limit: number): { paginatedItems: T[], start: number }
-  {
+    limit: number
+  ): { paginatedItems: T[]; start: number } {
     const start = (page - 1) * limit;
     const end = start + limit;
     const paginatedItems = items.slice(start, end);
-    return { paginatedItems, start};
+    return { paginatedItems, start };
   }
 
   private addToGetQueue(queueKey: string, queueData: QueueItemInterface): void {
@@ -89,19 +95,22 @@ class ItemsService {
     }
   }
 
-  getItems(
-      page: number,
-      limit: number,
-      filterId: number | null,
+  public getItems(
+    page: number,
+    limit: number,
+    filterId: number | null
   ): ItemsResponseInterface {
     let items = itemsRepository.getAllItems();
 
     if (filterId) {
-      items = items.filter(item => item.id.toString().includes(filterId.toString()));
+      items = items.filter((item) =>
+        item.id.toString().includes(filterId.toString())
+      );
     }
 
     const selectedItems = itemsRepository.getSelectedItems();
-    items = items.filter(item => !selectedItems.has(item.id))
+    items = items
+      .filter((item) => !selectedItems.has(item.id))
       .sort((a, b) => a.id - b.id);
 
     const { paginatedItems } = this.paginateItems(items, page, limit);
@@ -117,15 +126,17 @@ class ItemsService {
     };
   }
 
-  getSelectedItems(
-      page: number,
-      limit: number,
-      filterId: number | null
+  public getSelectedItems(
+    page: number,
+    limit: number,
+    filterId: number | null
   ): SelectedItemsResponseInterface {
     let items = itemsRepository.getSelectedAllItems();
 
     if (filterId) {
-      items = items.filter(item => item.id.toString().includes(filterId.toString()));
+      items = items.filter((item) =>
+        item.id.toString().includes(filterId.toString())
+      );
     }
 
     const { paginatedItems } = this.paginateItems(items, page, limit);
@@ -138,11 +149,11 @@ class ItemsService {
       total: items.length,
       page,
       limit,
-      order: itemsRepository.getSelectedOrder()
+      order: itemsRepository.getSelectedOrder(),
     };
   }
 
-  queueAddItem(id: number): QueueAddItemResultInterface {
+  public queueAddItem(id: number): QueueAddItemResultInterface {
     const queueKey = `add-${id}`;
     if (this.requestQueue.add.has(queueKey)) {
       return { queued: false, message: '"Элемент" уже в очереди', id };
@@ -160,24 +171,34 @@ class ItemsService {
       this.addBatchTimer = setTimeout(() => this.processAddBatch(), 10000);
     }
 
-    return { queued: true, message: 'Элемент поставлен в очередь на добавление', id };
+    return {
+      queued: true,
+      message: "Элемент поставлен в очередь на добавление",
+      id,
+    };
   }
 
-  queueUpdateSelection(
-      action: ActionEnum,
-      id?: number,
-      order?: number[]
+  public queueUpdateSelection(
+    action: ActionEnum,
+    id?: number,
+    order?: number[]
   ): QueueUpdateResultInterface {
     if (action === ActionEnum.SELECT || action === ActionEnum.DESELECT) {
       if (!id) {
-        return { success: false, error: 'Для выбора/отмены требуется идентификатор' };
+        return {
+          success: false,
+          error: "Для выбора/отмены требуется идентификатор",
+        };
       }
 
       const queueKey = `${action}-${id}`;
       if (!this.requestQueue.update.has(queueKey)) {
         this.requestQueue.update.set(queueKey, { type: action, id });
         if (!this.updateBatchTimer) {
-          this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
+          this.updateBatchTimer = setTimeout(
+            () => this.processUpdateBatch(),
+            1000
+          );
         }
       }
 
@@ -190,21 +211,30 @@ class ItemsService {
       return { success: true, message: `Item ${action}ed`, id };
     } else if (action === ActionEnum.REORDER) {
       if (!order?.length) {
-        return { success: false, error: 'Требуется указать порядок' };
+        return { success: false, error: "Требуется указать порядок" };
       }
-      this.requestQueue.update.set(ActionEnum.REORDER, { type: ActionEnum.REORDER, order });
+      this.requestQueue.update.set(ActionEnum.REORDER, {
+        type: ActionEnum.REORDER,
+        order,
+      });
       if (!this.updateBatchTimer) {
-        this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
+        this.updateBatchTimer = setTimeout(
+          () => this.processUpdateBatch(),
+          1000
+        );
       }
 
       itemsRepository.reorderItems(order);
 
-      return { success: true, message: 'Сортировка обновлена', order: itemsRepository.getSelectedOrder() };
+      return {
+        success: true,
+        message: "Сортировка обновлена",
+        order: itemsRepository.getSelectedOrder(),
+      };
     }
 
-    return { success: false, error: 'Неверные параметры' };
+    return { success: false, error: "Неверные параметры" };
   }
 }
 
 export default new ItemsService();
-

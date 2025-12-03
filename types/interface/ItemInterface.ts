@@ -1,3 +1,3 @@
 export interface ItemInterface {
-    id: number;
+  id: number;
 }
