@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
 import app from "../app";
-import debug from "debug";
 import http from "http";
-
-const debugLog = debug("book-back:server");
 
 function normalizePort(val: string): number | string | false {
   const port = parseInt(val, 10);
@@ -47,7 +44,7 @@ function onListening(): void {
     typeof addr === "string"
       ? "pipe " + addr
       : "port " + (addr ? addr.port : "unknown");
-  debugLog("Listening on " + bind);
+  console.log("Listening on " + bind);
 }
 
 const port = normalizePort(process.env.PORT || "3000");

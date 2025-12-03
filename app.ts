@@ -6,7 +6,6 @@ import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 const app: Express = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use(corsMiddleware);
 

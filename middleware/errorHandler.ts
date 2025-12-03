@@ -11,12 +11,12 @@ export function notFoundHandler(
 
 export function errorHandler(
   err: Error & { status?: number },
-  req: Request,
+  _req: Request,
   res: Response,
   _next: NextFunction
 ): void {
   const status = err.status || 500;
-  const isDevelopment = req.app.get("env") === "development";
+  const isDevelopment = process.env.NODE_ENV !== "production";
 
   res.status(status);
   res.json({
