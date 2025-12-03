@@ -15,9 +15,15 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  const status = err.status || 500;
+  const isDevelopment = req.app.get("env") === "development";
 
-  res.status(err.status || 500);
-  res.render("error");
+  res.status(status);
+  res.json({
+    error: {
+      message: err.message,
+      status: status,
+      ...(isDevelopment && { stack: err.stack }),
+    },
+  });
 }
