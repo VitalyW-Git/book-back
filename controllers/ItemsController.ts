@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import itemsService from "../services/ItemsService";
-import { ItemsResponseInterface } from "../types/interface";
-import { ActionEnum } from "../types/enum/ActionEnum";
+import { ItemsResponseInterface } from "../common/interface";
+import { ActionEnum } from "../common/enum/ActionEnum";
 
 class ItemsController {
   async getItems(

@@ -1,5 +1,5 @@
-import { ItemInterface } from "../types/interface";
-import { MAX_ID_CONSTANT } from "../types/constant";
+import { ItemInterface } from "../common/interface";
+import { MAX_ID_CONSTANT } from "../common/constant";
 
 class ItemsRepository {
   private selectedItems: Set<number> = new Set();

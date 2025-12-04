@@ -5,9 +5,9 @@ import {
   QueueAddItemResultInterface,
   QueueUpdateResultInterface,
   QueueItemInterface,
-  RequestQueueInterface,
-} from "../types/interface";
-import { ActionEnum } from "../types/enum/ActionEnum";
+  RequestQueueInterface, ItemInterface, QueueUpdateInterface,
+} from "../common/interface";
+import { ActionEnum } from "../common/enum/ActionEnum";
 
 class ItemsService {
   private requestQueue: RequestQueueInterface = {
@@ -30,7 +30,7 @@ class ItemsService {
     const itemsToAdd = Array.from(this.requestQueue.add.values());
     this.requestQueue.add.clear();
 
-    itemsToAdd.forEach((item) => {
+    itemsToAdd.forEach((item: ItemInterface) => {
       itemsRepository.addItem(item);
     });
 
@@ -56,18 +56,12 @@ class ItemsService {
     const updates = Array.from(this.requestQueue.update.values());
     this.requestQueue.update.clear();
 
-    updates.forEach((update) => {
-      if (update.type === ActionEnum.SELECT && update.id !== undefined) {
+    updates.forEach((update: QueueUpdateInterface) => {
+      if (update.type === ActionEnum.SELECT && update.id) {
         itemsRepository.selectItem(update.id);
-      } else if (
-        update.type === ActionEnum.DESELECT &&
-        update.id !== undefined
-      ) {
+      } else if (update.type === ActionEnum.DESELECT && update.id) {
         itemsRepository.deselectItem(update.id);
-      } else if (
-        update.type === ActionEnum.REORDER &&
-        update.order !== undefined
-      ) {
+      } else if (update.type === ActionEnum.REORDER && !!update.order?.length) {
         itemsRepository.reorderItems(update.order);
       }
     });
@@ -110,8 +104,8 @@ class ItemsService {
 
     const selectedItems = itemsRepository.getSelectedItems();
     items = items
-      .filter((item) => !selectedItems.has(item.id))
-      .sort((a, b) => a.id - b.id);
+      .filter((item: ItemInterface) => !selectedItems.has(item.id))
+      .sort((a: ItemInterface, b: ItemInterface) => a.id - b.id);
 
     const { paginatedItems } = this.paginateItems(items, page, limit);
 
@@ -161,11 +155,10 @@ class ItemsService {
 
     const maxId = itemsRepository.getMaxId();
     if (id <= maxId || itemsRepository.hasItem(id)) {
-      return { queued: false, error: `Элемент с ID ${id}  уже существует` };
+      return { queued: false, error: `"Элемент" с ID ${id} уже существует` };
     }
 
-    const newItem = { id };
-    this.requestQueue.add.set(queueKey, newItem);
+    this.requestQueue.add.set(queueKey, { id });
 
     if (!this.addBatchTimer) {
       this.addBatchTimer = setTimeout(() => this.processAddBatch(), 10000);
@@ -173,7 +166,7 @@ class ItemsService {
 
     return {
       queued: true,
-      message: "Элемент поставлен в очередь на добавление",
+      message: `"Элемент" поставлен в очередь на добавление`,
       id,
     };
   }
@@ -195,10 +188,7 @@ class ItemsService {
       if (!this.requestQueue.update.has(queueKey)) {
         this.requestQueue.update.set(queueKey, { type: action, id });
         if (!this.updateBatchTimer) {
-          this.updateBatchTimer = setTimeout(
-            () => this.processUpdateBatch(),
-            1000
-          );
+          this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
         }
       }
 
@@ -218,10 +208,7 @@ class ItemsService {
         order,
       });
       if (!this.updateBatchTimer) {
-        this.updateBatchTimer = setTimeout(
-          () => this.processUpdateBatch(),
-          1000
-        );
+        this.updateBatchTimer = setTimeout(() => this.processUpdateBatch(), 1000);
       }
 
       itemsRepository.reorderItems(order);

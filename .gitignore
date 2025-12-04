@@ -1,4 +1,5 @@
 .env
 .idea
+/MD/
 /node_modules/
 /dist/
