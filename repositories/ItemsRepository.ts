@@ -19,11 +19,11 @@ class ItemsRepository {
     console.log("Инициализация завершена");
   }
 
-  public getAllItems(): ItemInterface[] {
+  public async getAllItems(): Promise<ItemInterface[]> {
     return Array.from(this.allItems.values());
   }
 
-  public getSelectedAllItems(): ItemInterface[] {
+  public async getSelectedAllItems(): Promise<ItemInterface[]> {
     return this.selectedOrder
       .filter((id) => this.selectedItems.has(id))
       .map((id) => this.allItems.get(id))
@@ -34,7 +34,7 @@ class ItemsRepository {
     return this.allItems.has(id);
   }
 
-  public addItem(item: ItemInterface): boolean {
+  public async addItem(item: ItemInterface): Promise<boolean> {
     if (!this.allItems.has(item.id)) {
       this.allItems.set(item.id, item);
       if (item.id >= this.nextId) {
@@ -45,27 +45,27 @@ class ItemsRepository {
     return false;
   }
 
-  public selectItem(id: number): void {
+  public async selectItem(id: number): Promise<void> {
     this.selectedItems.add(id);
     if (!this.selectedOrder.includes(id)) {
       this.selectedOrder.push(id);
     }
   }
 
-  public deselectItem(id: number): void {
+  public async deselectItem(id: number): Promise<void> {
     this.selectedItems.delete(id);
     this.selectedOrder = this.selectedOrder.filter((itemId) => itemId !== id);
   }
 
-  public reorderItems(order: number[]): void {
+  public async reorderItems(order: number[]): Promise<void> {
     this.selectedOrder = order.filter((id) => this.selectedItems.has(id));
   }
 
-  public getSelectedItems(): Set<number> {
+  public async getSelectedItems(): Promise<Set<number>> {
     return this.selectedItems;
   }
 
-  public getSelectedOrder(): number[] {
+  public async getSelectedOrder(): Promise<number[]> {
     return this.selectedOrder;
   }
 

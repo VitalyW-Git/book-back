@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import itemsService from "../services/ItemsService";
-import { ItemsResponseInterface } from "../common/interface";
+import {
+  ItemsResponseInterface,
+  QueueAddItemResultInterface,
+} from "../common/interface";
 import { ActionEnum } from "../common/enum/ActionEnum";
 
 class ItemsController {
-  async getItems(
+  public async getItems(
     req: Request,
     res: Response,
     next: NextFunction
@@ -16,7 +19,7 @@ class ItemsController {
         ? parseInt(req.query.filterId as string)
         : null;
 
-      const result: ItemsResponseInterface = itemsService.getItems(
+      const result: ItemsResponseInterface = await itemsService.getItems(
         page,
         limit,
         filterId
@@ -27,7 +30,7 @@ class ItemsController {
     }
   }
 
-  async getSelectedItems(
+  public async getSelectedItems(
     req: Request,
     res: Response,
     next: NextFunction
@@ -39,14 +42,14 @@ class ItemsController {
         ? parseInt(req.query.filterId as string)
         : null;
 
-      const result = itemsService.getSelectedItems(page, limit, filterId);
+      const result = await itemsService.getSelectedItems(page, limit, filterId);
       res.json(result);
     } catch (error) {
       next(error);
     }
   }
 
-  async addItem(
+  public async addItem(
     req: Request,
     res: Response,
     next: NextFunction
@@ -59,7 +62,8 @@ class ItemsController {
         return;
       }
 
-      const result = itemsService.queueAddItem(id);
+      const result: QueueAddItemResultInterface =
+        await itemsService.queueAddItem(id);
 
       if (!result.queued) {
         res.status(400).json({ error: result.error || result.message });
@@ -72,7 +76,7 @@ class ItemsController {
     }
   }
 
-  async updateSelection(
+  public async updateSelection(
     req: Request,
     res: Response,
     next: NextFunction
@@ -86,7 +90,7 @@ class ItemsController {
           return;
         }
 
-        const result = itemsService.queueUpdateSelection(action, id);
+        const result = await itemsService.queueUpdateSelection(action, id);
         res.json({ message: result.message, id });
       } else if (action === ActionEnum.REORDER) {
         if (!Array.isArray(order)) {
@@ -94,7 +98,7 @@ class ItemsController {
           return;
         }
 
-        const result = itemsService.queueUpdateSelection(
+        const result = await itemsService.queueUpdateSelection(
           ActionEnum.REORDER,
           undefined,
           order
